@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FR INSTITUTIONAL AI ROBOT - V3 AUTO</title>
+<title>FR INSTITUTIONAL AI ROBOT - V3.1 CORRIGÉ</title>
 <meta name="theme-color" content="#0a1428">
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
@@ -25,8 +25,8 @@ table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;bord
 </style>
 </head>
 <body>
-<h1>FR INSTITUTIONAL AI ROBOT <span style="color:#22c55e">V3 AUTO</span></h1>
-<div class="sub">100% AUTOMATIQUE • TU UPLOADES • BAMMM • SIGNAL</div>
+<h1>FR INSTITUTIONAL AI ROBOT <span style="color:#22c55e">V3.1 CORRIGÉ</span></h1>
+<div class="sub">100% AUTOMATIQUE • TU UPLOADES • BAMMM • SIGNAL • RR 1:2</div>
 
 <div class="card" style="border:2px solid #2563eb">
 <h3 style="margin:0">📸 UPLOAD TA CAPTURE = BAMMM</h3>
@@ -44,8 +44,8 @@ table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;bord
 <div class="grid" style="margin-top:12px">
 <div class="box"><small>Entrée OTE Auto</small><div class="big" id="rEntry">-</div></div>
 <div class="box"><small>Stop Loss Auto</small><div class="big sell" id="rSL">-</div></div>
-<div class="box"><small>Take Profit 1</small><div class="big buy" id="rTP1">-</div></div>
-<div class="box"><small>Take Profit 2</small><div class="big buy" id="rTP2">-</div></div>
+<div class="box"><small>Take Profit 1 (1:1)</small><div class="big buy" id="rTP1">-</div></div>
+<div class="box"><small>Take Profit 2 (1:2)</small><div class="big buy" id="rTP2">-</div></div>
 <div class="box"><small>Risk / Reward</small><div class="big" id="rRR">-</div></div>
 <div class="box"><small>Zone OTE Auto</small><div class="big" id="rOTE">-</div></div>
 </div>
@@ -73,7 +73,7 @@ table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;bord
 <button class="btn-red" onclick="effacerJournal()">🗑️ Effacer</button>
 </div>
 
-<div class="card" style="font-size:11px;color:#8aa0c0;line-height:1.6">⚠️ V3 AUTO : Le robot analyse les couleurs des bougies de ta capture pour estimer la tendance. C'est une aide à la décision, pas une garantie. Toujours 1-2% max par trade + confirmation M1/M5.</div>
+<div class="card" style="font-size:11px;color:#8aa0c0;line-height:1.6">⚠️ V3.1 CORRIGÉ : SL = Haut/Bas OTE + buffer. TP1 = 1x Risque, TP2 = 2x Risque. Si dominance &lt; 60%, le robot dit WAIT. C'est une aide à la décision, pas une garantie. Toujours 1-2% max par trade + confirmation M1/M5.</div>
 
 <script>
 let lastTrade=null;
@@ -101,32 +101,53 @@ function analyserAuto(img){
     }
     let total=green+red||1;
     let pctG=Math.round(green/total*100); let pctR=100-pctG;
+    let dominance=Math.max(pctG,pctR);
     let isBuy = green>=red;
     let paire=document.getElementById('paire').value;
     let base=basePrices[paire]||1200;
-    // On génère un range réaliste autour du prix de base à partir de l'image
     let range = base*0.06;
     let high = base + range/2;
     let low = base - range/2;
     let oteHigh = high - range*0.618;
     let oteLow = high - range*0.79;
     let entry=(oteHigh+oteLow)/2;
-    let sl,tp1,tp2;
-    if(isBuy){ sl=low - range*0.08; tp1=high - range*0.25; tp2=high; }
-    else { sl=high + range*0.08; tp1=low + range*0.25; tp2=low; }
-    let risk=Math.abs(entry-sl); let reward=Math.abs(tp1-entry); let rr=(reward/risk).toFixed(2);
-    let conf = Math.max(pctG,pctR)>=65 ? 'Confiance Élevée 🔥' : 'Confiance Moyenne - Attends confirmation';
+
+    // === CORRECTION RR 1:2 ===
+    let buffer = range * 0.02; // petit buffer au lieu de 8%
+    let sl, tp1, tp2, risk;
+    if(isBuy){
+      sl = oteLow - buffer;
+      risk = Math.abs(entry - sl);
+      tp1 = entry + (1 * risk);
+      tp2 = entry + (2 * risk);
+    } else {
+      sl = oteHigh + buffer;
+      risk = Math.abs(entry - sl);
+      tp1 = entry - (1 * risk);
+      tp2 = entry - (2 * risk);
+    }
+    // RR toujours 1:2 sur TP2
+    let rr = '1 : 2.00';
+
+    // === NOUVELLE REGLE WAIT ===
+    let isWait = dominance < 60;
+    let conf = isWait ? 'WAIT - Pas de trade, trop faible' : (dominance>=65 ? 'Confiance Élevée 🔥' : 'Confiance Moyenne - Attends confirmation');
     let decimals = base<10?4:2;
     document.getElementById('autoResult').style.display='block';
     document.getElementById('status').innerHTML='✅ <b>BAMMM ! Analyse terminée.</b><br>Le robot a lu '+pctG+'% bougies vertes et '+pctR+'% bougies rouges sur ta capture.';
-    document.getElementById('rSignal').innerHTML=isBuy?'🟢 BUY':'🔴 SELL';
-    document.getElementById('rSignal').style.color=isBuy?'#22c55e':'#ef4444';
-    document.getElementById('rConf').innerText=conf+' • '+Math.max(pctG,pctR)+'% dominance';
+    if(isWait){
+      document.getElementById('rSignal').innerHTML='⏸️ WAIT';
+      document.getElementById('rSignal').style.color='#fbbf24';
+    } else {
+      document.getElementById('rSignal').innerHTML=isBuy?'🟢 BUY':'🔴 SELL';
+      document.getElementById('rSignal').style.color=isBuy?'#22c55e':'#ef4444';
+    }
+    document.getElementById('rConf').innerText=conf+' • '+dominance+'% dominance';
     document.getElementById('rEntry').innerText=entry.toFixed(decimals);
     document.getElementById('rSL').innerText=sl.toFixed(decimals);
     document.getElementById('rTP1').innerText=tp1.toFixed(decimals);
     document.getElementById('rTP2').innerText=tp2.toFixed(decimals);
-    document.getElementById('rRR').innerText='1 : '+rr;
+    document.getElementById('rRR').innerText=rr;
     document.getElementById('rOTE').innerText=oteLow.toFixed(decimals)+' - '+oteHigh.toFixed(decimals);
     document.getElementById('pctGreen').innerText=pctG+'%';
     document.getElementById('pctRed').innerText=pctR+'%';
@@ -135,8 +156,12 @@ function analyserAuto(img){
     let fib=[0,0.236,0.382,0.5,0.618,0.705,0.79,1];
     let names=['0% - High','23.6%','38.2%','50%','61.8% - OTE','70.5% - OTE','79% - OTE','100% - Low'];
     document.getElementById('fiboBody').innerHTML=fib.map((f,i)=>{let p=high-range*f; return `<tr class="${i>=4&&i<=6?'ote':''}"><td>${names[i]}</td><td>${p.toFixed(decimals)}</td><td>${i>=4&&i<=6?'⭐ OTE':''}</td></tr>`}).join('');
-    document.getElementById('conseil').innerText = isBuy ? `Robot : Dominance verte ${pctG}%. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, cherche un rejet M1, puis BUY. SL sous le Low.` : `Robot : Dominance rouge ${pctR}%. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, cherche un rejet M1, puis SELL. SL au-dessus du High.`;
-    lastTrade={paire:paire, signal:isBuy?'🟢 BUY':'🔴 SELL', entry:entry.toFixed(decimals), sl:sl.toFixed(decimals), tp1:tp1.toFixed(decimals), date:new Date().toLocaleString('fr-FR'), result:'En cours'};
+    if(isWait){
+      document.getElementById('conseil').innerText = `Robot : Dominance ${dominance}% seulement. C'est 50/50. NE TRADE PAS. Attends une dominance > 60% ou une autre capture plus claire.`;
+    } else {
+      document.getElementById('conseil').innerText = isBuy ? `Robot : Dominance verte ${pctG}%. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, cherche un rejet M1, puis BUY. SL sous OTE. TP2 = 2x ton risque.` : `Robot : Dominance rouge ${pctR}%. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, cherche un rejet M1, puis SELL. SL au-dessus OTE. TP2 = 2x ton risque.`;
+    }
+    lastTrade={paire:paire, signal:isWait?'⏸️ WAIT':(isBuy?'🟢 BUY':'🔴 SELL'), entry:entry.toFixed(decimals), sl:sl.toFixed(decimals), tp1:tp1.toFixed(decimals), date:new Date().toLocaleString('fr-FR'), result:'En cours'};
     document.getElementById('autoResult').scrollIntoView({behavior:'smooth'});
   },800);
 }
