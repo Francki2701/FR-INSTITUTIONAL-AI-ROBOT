@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FR INSTITUTIONAL AI ROBOT - V3.1 CORRIGÉ</title>
+<title>FR INSTITUTIONAL AI ROBOT - V3.2 VRAI PRIX</title>
 <meta name="theme-color" content="#0a1428">
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
@@ -25,14 +25,19 @@ table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;bord
 </style>
 </head>
 <body>
-<h1>FR INSTITUTIONAL AI ROBOT <span style="color:#22c55e">V3.1 CORRIGÉ</span></h1>
-<div class="sub">100% AUTOMATIQUE • TU UPLOADES • BAMMM • SIGNAL • RR 1:2</div>
+<h1>FR INSTITUTIONAL AI ROBOT <span style="color:#22c55e">V3.2 VRAI PRIX</span></h1>
+<div class="sub">TU TAPES LE VRAI PRIX • TU UPLOADES • BAMMM • SIGNAL 1:2</div>
 
 <div class="card" style="border:2px solid #2563eb">
 <h3 style="margin:0">📸 UPLOAD TA CAPTURE = BAMMM</h3>
-<p style="font-size:12px;color:#8aa0c0">Ne tape rien. Prends ta capture Deriv / MT5, upload-la. Le robot lit les bougies tout seul.</p>
+<p style="font-size:12px;color:#8aa0c0">1. Choisis ta paire. 2. Tape le prix que tu vois sur ta capture. 3. Upload.</p>
 <label>Paire</label>
 <select id="paire"><option>Volatility 50 (1s)</option><option>Volatility 100 (1s)</option><option>Volatility 75 (1s)</option><option>EUR/USD</option><option>GBP/USD</option><option>XAU/USD</option><option>BTC/USD</option></select>
+
+<label style="margin-top:12px;display:block">💰 Prix actuel que tu vois sur ta capture (OBLIGATOIRE)</label>
+<input type="number" id="prixActuel" placeholder="Ex: XAU/USD = 4020, EUR/USD = 1.0850, V50 = 1234" step="any">
+<p style="font-size:11px;color:#fbbf24;margin:4px 0 0">⚠️ Ne laisse pas vide ! C'est ce prix qui corrige le bug 2617 vs 4020.</p>
+
 <input type="file" id="imgInput" accept="image/*" style="margin-top:12px">
 <img id="preview" style="display:none">
 <div id="status" style="font-size:13px;margin-top:10px;line-height:1.6"></div>
@@ -53,7 +58,7 @@ table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;bord
 <div>🟢 Bougies Vertes <span id="pctGreen"></span></div><div class="bar"><div id="barGreen" style="background:#22c55e;width:50%"></div></div>
 <div style="margin-top:8px">🔴 Bougies Rouges <span id="pctRed"></span></div><div class="bar"><div id="barRed" style="background:#ef4444;width:50%"></div></div>
 </div>
-<h4>Fibonacci Auto (calculé sur ta capture)</h4>
+<h4>Fibonacci Auto (calculé sur ton vrai prix)</h4>
 <table><tr><th>Niveau</th><th>Prix</th><th>Zone</th></tr><tbody id="fiboBody"></tbody></table>
 <p style="font-size:12px;color:#fbbf24;line-height:1.6" id="conseil"></p>
 <button class="btn-ghost" onclick="ajouterJournal()">➕ Ajouter au Journal</button>
@@ -73,13 +78,20 @@ table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;bord
 <button class="btn-red" onclick="effacerJournal()">🗑️ Effacer</button>
 </div>
 
-<div class="card" style="font-size:11px;color:#8aa0c0;line-height:1.6">⚠️ V3.1 CORRIGÉ : SL = Haut/Bas OTE + buffer. TP1 = 1x Risque, TP2 = 2x Risque. Si dominance &lt; 60%, le robot dit WAIT. C'est une aide à la décision, pas une garantie. Toujours 1-2% max par trade + confirmation M1/M5.</div>
+<div class="card" style="font-size:11px;color:#8aa0c0;line-height:1.6">⚠️ V3.2 : Le robot utilise TON prix tapé, plus le vieux prix de 2650. SL = OTE + buffer. TP1 = 1x Risque, TP2 = 2x Risque. Si dominance &lt; 60% = WAIT. Aide à la décision, pas garantie. 1-2% max par trade.</div>
 
 <script>
 let lastTrade=null;
-let basePrices={'Volatility 50 (1s)':1200,'Volatility 100 (1s)':900,'Volatility 75 (1s)':650,'EUR/USD':1.08,'GBP/USD':1.27,'XAU/USD':2650,'BTC/USD':98000};
+let basePrices={'Volatility 50 (1s)':1200,'Volatility 100 (1s)':900,'Volatility 75 (1s)':650,'EUR/USD':1.08,'GBP/USD':1.27,'XAU/USD':4020,'BTC/USD':98000};
 document.getElementById('imgInput').addEventListener('change',e=>{
   let f=e.target.files[0]; if(!f) return;
+  // Vérifie que le prix est tapé
+  let prixTape = parseFloat(document.getElementById('prixActuel').value);
+  if(!prixTape || prixTape<=0){
+    alert('⚠️ Attends ! Tape d’abord le prix actuel que tu vois sur ta capture.\nEx: pour XAU/USD tape 4020');
+    e.target.value='';
+    return;
+  }
   let r=new FileReader();
   r.onload=()=>{
     let img=new Image();
@@ -104,16 +116,18 @@ function analyserAuto(img){
     let dominance=Math.max(pctG,pctR);
     let isBuy = green>=red;
     let paire=document.getElementById('paire').value;
-    let base=basePrices[paire]||1200;
-    let range = base*0.06;
+    // === V3.2 : ON UTILISE LE VRAI PRIX TAPÉ, PAS LE PRIX INVENTÉ ===
+    let prixTape = parseFloat(document.getElementById('prixActuel').value);
+    let base = prixTape || basePrices[paire] || 1200;
+    // Range plus réaliste : 2% du prix au lieu de 6% (évite les SL de 500 pips)
+    let range = base*0.02;
     let high = base + range/2;
     let low = base - range/2;
     let oteHigh = high - range*0.618;
     let oteLow = high - range*0.79;
     let entry=(oteHigh+oteLow)/2;
 
-    // === CORRECTION RR 1:2 ===
-    let buffer = range * 0.02; // petit buffer au lieu de 8%
+    let buffer = range * 0.02;
     let sl, tp1, tp2, risk;
     if(isBuy){
       sl = oteLow - buffer;
@@ -126,15 +140,12 @@ function analyserAuto(img){
       tp1 = entry - (1 * risk);
       tp2 = entry - (2 * risk);
     }
-    // RR toujours 1:2 sur TP2
     let rr = '1 : 2.00';
-
-    // === NOUVELLE REGLE WAIT ===
     let isWait = dominance < 60;
     let conf = isWait ? 'WAIT - Pas de trade, trop faible' : (dominance>=65 ? 'Confiance Élevée 🔥' : 'Confiance Moyenne - Attends confirmation');
     let decimals = base<10?4:2;
     document.getElementById('autoResult').style.display='block';
-    document.getElementById('status').innerHTML='✅ <b>BAMMM ! Analyse terminée.</b><br>Le robot a lu '+pctG+'% bougies vertes et '+pctR+'% bougies rouges sur ta capture.';
+    document.getElementById('status').innerHTML='✅ <b>BAMMM ! Analyse terminée sur vrai prix '+base.toFixed(decimals)+'</b><br>Le robot a lu '+pctG+'% bougies vertes et '+pctR+'% bougies rouges sur ta capture.';
     if(isWait){
       document.getElementById('rSignal').innerHTML='⏸️ WAIT';
       document.getElementById('rSignal').style.color='#fbbf24';
@@ -157,9 +168,9 @@ function analyserAuto(img){
     let names=['0% - High','23.6%','38.2%','50%','61.8% - OTE','70.5% - OTE','79% - OTE','100% - Low'];
     document.getElementById('fiboBody').innerHTML=fib.map((f,i)=>{let p=high-range*f; return `<tr class="${i>=4&&i<=6?'ote':''}"><td>${names[i]}</td><td>${p.toFixed(decimals)}</td><td>${i>=4&&i<=6?'⭐ OTE':''}</td></tr>`}).join('');
     if(isWait){
-      document.getElementById('conseil').innerText = `Robot : Dominance ${dominance}% seulement. C'est 50/50. NE TRADE PAS. Attends une dominance > 60% ou une autre capture plus claire.`;
+      document.getElementById('conseil').innerText = `Robot : Dominance ${dominance}% seulement. NE TRADE PAS. Prix utilisé : ${base.toFixed(decimals)}.`;
     } else {
-      document.getElementById('conseil').innerText = isBuy ? `Robot : Dominance verte ${pctG}%. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, cherche un rejet M1, puis BUY. SL sous OTE. TP2 = 2x ton risque.` : `Robot : Dominance rouge ${pctR}%. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, cherche un rejet M1, puis SELL. SL au-dessus OTE. TP2 = 2x ton risque.`;
+      document.getElementById('conseil').innerText = isBuy ? `Robot : Dominance verte ${pctG}%. Prix réel utilisé : ${base.toFixed(decimals)}. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, puis BUY. SL sous OTE. TP2 = 2x risque.` : `Robot : Dominance rouge ${pctR}%. Prix réel utilisé : ${base.toFixed(decimals)}. Attends le prix dans OTE ${oteLow.toFixed(decimals)} - ${oteHigh.toFixed(decimals)}, puis SELL. SL au-dessus OTE. TP2 = 2x risque.`;
     }
     lastTrade={paire:paire, signal:isWait?'⏸️ WAIT':(isBuy?'🟢 BUY':'🔴 SELL'), entry:entry.toFixed(decimals), sl:sl.toFixed(decimals), tp1:tp1.toFixed(decimals), date:new Date().toLocaleString('fr-FR'), result:'En cours'};
     document.getElementById('autoResult').scrollIntoView({behavior:'smooth'});
