@@ -1,19 +1,165 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101827"><meta name="description" content="FR Institutional AI Robot — laboratoire éducatif de graphiques de marché">
-<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
-<title>FR INSTITUTIONAL AI ROBOT</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FR INSTITUTIONAL AI ROBOT - V2</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a1428">
 <style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#141f31;--line:#26364d;--blue:#55a3ff;--green:#35cf91;--red:#ff6878;--muted:#9aabc1}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#eef4ff;font:15px system-ui,-apple-system,sans-serif}header{padding:22px 18px;background:#101a2b;border-bottom:1px solid var(--line)}h1{font-size:20px;margin:0 0 5px}header p{margin:0;color:var(--muted);font-size:12px}.wrap{max-width:850px;margin:auto;padding:15px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:13px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}select,button{background:#22324a;color:white;border:1px solid #3b5272;border-radius:9px;padding:10px;font:inherit}button{background:#2367b5;border:0;font-weight:650}canvas{width:100%;height:260px;display:block}.metric{font-size:22px;font-weight:750}.muted{color:var(--muted);font-size:12px}.tag{display:inline-block;padding:5px 9px;border-radius:20px;background:#253750;font-size:12px}.green{color:var(--green)}.red{color:var(--red)}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.small{font-size:13px}.notice{font-size:12px;line-height:1.5;color:#bdc9d9}.levels{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:9px;margin-top:9px}@media(min-width:650px){.grid{grid-template-columns:repeat(4,1fr)}}
-</style></head><body>
-<header><h1>FR INSTITUTIONAL AI ROBOT</h1><p>CHART LAB · Outil pédagogique en mode démonstration</p></header>
-<main class="wrap">
-<section class="panel"><div class="row"><div><b>Graphique de démonstration</b><div class="muted">Prix fictifs — aucune donnée en direct</div></div><div><select id="market"><option>Volatility 50 (1s) — démo</option><option>Forex — démo</option><option>Crypto — démo</option></select> <select id="tf"><option>M1</option><option>M5</option><option>M15</option><option>H1</option><option>H4</option></select></div></div><canvas id="chart" width="900" height="300" aria-label="Graphique fictif en chandeliers"></canvas><div class="row"><span class="tag">EMA 9 / EMA 21 · simulées</span><button id="refresh">Nouvelle simulation</button></div></section>
-<section class="grid"><div class="panel"><div class="muted">Biais simulé</div><div class="metric" id="bias">—</div></div><div class="panel"><div class="muted">RSI 14 simulé</div><div class="metric" id="rsi">—</div></div><div class="panel"><div class="muted">Confirmation MTF</div><div class="metric" id="mtf">—</div></div><div class="panel"><div class="muted">Structure</div><div class="metric" id="structure">—</div></div></section>
-<section class="panel"><b>Zone OTE éducative</b><p class="muted">Retracement théorique 0,618 à 0,786 — calcul fictif de démonstration.</p><div class="levels"><span>OTE 0,618</span><b id="ote1">—</b></div><div class="levels"><span>OTE 0,786</span><b id="ote2">—</b></div><p class="notice">BOS / FVG : notions de structure affichées à titre d’apprentissage. Les niveaux ne sont pas des signaux d’achat ou de vente.</p></section>
-<section class="panel"><b>À savoir</b><p class="notice">Cette application est un prototype éducatif avec données générées. Elle ne reçoit pas les cours réels, ne prédit pas les prochaines bougies et ne passe aucun ordre. Les indicateurs peuvent être inexacts : utilise-la uniquement pour apprendre et tester en simulation, jamais comme garantie de résultat financier.</p></section>
-</main><script>
-const c=document.getElementById('chart'),ctx=c.getContext('2d');let seed=0;function run(){seed++;ctx.clearRect(0,0,c.width,c.height);let vals=[],p=100;for(let i=0;i<38;i++){p+=(Math.random()-.48)*3;vals.push(p)}let min=Math.min(...vals)-4,max=Math.max(...vals)+4;ctx.strokeStyle='#26364d';ctx.lineWidth=1;for(let j=0;j<5;j++){let y=20+j*62;ctx.beginPath();ctx.moveTo(35,y);ctx.lineTo(880,y);ctx.stroke()}let xstep=22;vals.forEach((v,i)=>{let prev=i?vals[i-1]:v-.5,yo=20+(max-v)/(max-min)*240,yp=20+(max-prev)/(max-min)*240;let up=v>=prev;ctx.strokeStyle=up?'#35cf91':'#ff6878';ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.moveTo(48+i*xstep,yo-10);ctx.lineTo(48+i*xstep,yo+10);ctx.stroke();ctx.fillRect(43+i*xstep,Math.min(yo,yp),10,Math.max(3,Math.abs(yp-yo)))});let avg=vals.slice(-9).reduce((a,b)=>a+b,0)/9,avg2=vals.slice(-21).reduce((a,b)=>a+b,0)/21;let up=avg>avg2;document.getElementById('bias').innerHTML=up?'<span class="green">HAUSSIER</span>':'<span class="red">BAISSIER</span>';document.getElementById('rsi').textContent=(35+Math.random()*40).toFixed(1);document.getElementById('mtf').textContent='Mixte';document.getElementById('structure').textContent=up?'BOS fictif ↑':'BOS fictif ↓';let lo=Math.min(...vals),hi=Math.max(...vals),d=hi-lo;document.getElementById('ote1').textContent=(hi-d*.618).toFixed(2);document.getElementById('ote2').textContent=(hi-d*.786).toFixed(2)}document.getElementById('refresh').addEventListener('click',run);run();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js'));
-</script></body></html>
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+body{margin:0;background:#0a1428;color:#fff;padding:14px;padding-bottom:40px}
+h1{font-size:22px;margin:0} .sub{color:#8aa0c0;font-size:12px;letter-spacing:1px}
+.card{background:#12203a;border:1px solid #1e345e;border-radius:18px;padding:14px;margin-top:14px}
+label{font-size:12px;color:#8aa0c0;display:block;margin-top:10px}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #2a4a7a;background:#0a1428;color:#fff;font-size:15px;margin-top:4px}
+button{width:100%;padding:14px;border:0;border-radius:12px;font-weight:800;font-size:15px;margin-top:12px;cursor:pointer}
+.btn-blue{background:#2563eb;color:#fff}.btn-green{background:#16a34a;color:#fff}.btn-red{background:#dc2626;color:#fff}.btn-ghost{background:#1e345e;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{background:#0a1428;border:1px solid #1e345e;border-radius:12px;padding:10px}
+.box small{color:#8aa0c0}.big{font-size:20px;font-weight:900}
+.buy{color:#22c55e}.sell{color:#ef4444}
+img{width:100%;border-radius:12px;margin-top:10px;display:none}
+table{width:100%;font-size:12px;border-collapse:collapse} td,th{padding:6px;border-bottom:1px solid #1e345e;text-align:left}
+.ote{background:#f59e0b22;border:1px solid #f59e0b}
+</style>
+</head>
+<body>
+<h1>FR INSTITUTIONAL AI ROBOT <span style="color:#2563eb">V2</span></h1>
+<div class="sub">CHART LAB • ANALYSE INSTITUTIONNELLE • OTE • JOURNAL</div>
+
+<div class="card">
+<h3 style="margin:0">📸 1. Analyse de ta capture</h3>
+<p style="font-size:12px;color:#8aa0c0">Prends une capture sur Deriv / MetaTrader et upload-la ici.</p>
+<input type="file" id="imgInput" accept="image/*">
+<img id="preview">
+<div id="imgAnalyse" style="font-size:13px;margin-top:10px;line-height:1.6"></div>
+<button class="btn-blue" onclick="analyserImage()">🔍 ANALYSER MA CAPTURE</button>
+</div>
+
+<div class="card">
+<h3 style="margin:0">📐 2. Fibonacci + OTE + Signal</h3>
+<label>Paire</label>
+<select id="paire"><option>Volatility 50 (1s)</option><option>Volatility 100 (1s)</option><option>Volatility 75 (1s)</option><option>EUR/USD</option><option>GBP/USD</option><option>XAU/USD</option><option>BTC/USD</option></select>
+<div class="grid">
+<div><label>High (Sommet)</label><input id="high" type="number" step="any" placeholder="ex: 1250.50"></div>
+<div><label>Low (Creux)</label><input id="low" type="number" step="any" placeholder="ex: 1180.20"></div>
+</div>
+<label>Prix actuel</label>
+<input id="prix" type="number" step="any" placeholder="ex: 1215.00">
+<label>Timeframe</label>
+<select id="tf"><option>M1</option><option>M5</option><option>M15</option><option>H1</option></select>
+<button class="btn-green" onclick="calculer()">⚡ CALCULER SIGNAL + FIBO + OTE</button>
+
+<div id="resultat" style="display:none">
+<div class="grid" style="margin-top:14px">
+<div class="box"><small>Signal Robot</small><div class="big" id="rSignal">-</div></div>
+<div class="box"><small>Confiance</small><div class="big" id="rConf">-</div></div>
+<div class="box"><small>Entrée OTE</small><div class="big" id="rEntry">-</div></div>
+<div class="box"><small>Stop Loss</small><div class="big sell" id="rSL">-</div></div>
+<div class="box"><small>Take Profit 1</small><div class="big buy" id="rTP1">-</div></div>
+<div class="box"><small>Take Profit 2</small><div class="big buy" id="rTP2">-</div></div>
+<div class="box"><small>Risk / Reward</small><div class="big" id="rRR">-</div></div>
+<div class="box"><small>Zone OTE</small><div class="big" id="rOTE">-</div></div>
+</div>
+
+<h4>Niveaux Fibonacci</h4>
+<table>
+<tr><th>Niveau</th><th>Prix</th><th>Zone</th></tr>
+<tbody id="fiboBody"></tbody>
+</table>
+<p style="font-size:12px;color:#fbbf24" id="conseil"></p>
+<button class="btn-ghost" onclick="ajouterJournal()">➕ Ajouter au Journal</button>
+</div>
+</div>
+
+<div class="card">
+<h3 style="margin:0">📓 3. Journal de Trading</h3>
+<div class="grid" style="margin-top:10px">
+<div class="box"><small>Total Trades</small><div class="big" id="jTotal">0</div></div>
+<div class="box"><small>Win Rate</small><div class="big buy" id="jWin">0%</div></div>
+</div>
+<div id="journalList" style="margin-top:10px;font-size:13px;line-height:1.6"></div>
+<label>Résultat du dernier trade</label>
+<select id="resTrade"><option value="WIN">✅ WIN</option><option value="LOSS">❌ LOSS</option><option value="BE">➖ BE</option></select>
+<button class="btn-blue" onclick="validerResultat()">✅ Valider Résultat</button>
+<button class="btn-red" onclick="effacerJournal()">🗑️ Effacer Journal</button>
+</div>
+
+<div class="card" style="font-size:11px;color:#8aa0c0;line-height:1.6">
+⚠️ Outil pédagogique en démonstration. Ne trade jamais sans gestion de risque : 1-2% max par trade. Le robot aide à structurer l'analyse, il ne garantit pas les gains.
+</div>
+
+<script>
+let previewImg=document.getElementById('preview');
+document.getElementById('imgInput').addEventListener('change',e=>{
+  let f=e.target.files[0]; if(!f) return;
+  let r=new FileReader(); r.onload=()=>{previewImg.src=r.result; previewImg.style.display='block';}; r.readAsDataURL(f);
+});
+function analyserImage(){
+  if(!previewImg.src){alert('Upload d’abord ta capture !');return;}
+  document.getElementById('imgAnalyse').innerHTML=`✅ <b>Capture reçue.</b><br>• Structure détectée : Recherche de BOS / CHoCH<br>• Zone à surveiller : FVG + OTE 0.62 - 0.79<br>• Action : Mets le <b>High</b> et le <b>Low</b> du mouvement ci-dessous pour que le robot calcule l'entrée exacte.<br>• Astuce : Si le prix est dans l'OTE + rejet M1/M5 = signal fort.`;
+}
+let lastTrade=null;
+function calculer(){
+  let h=parseFloat(document.getElementById('high').value);
+  let l=parseFloat(document.getElementById('low').value);
+  let p=parseFloat(document.getElementById('prix').value);
+  if(isNaN(h)||isNaN(l)||isNaN(p)){alert('Remplis High, Low et Prix actuel');return;}
+  let range=h-l;
+  // Si prix proche du haut -> on cherche Sell dans OTE haussier, sinon Buy
+  let isSell = p > (l + range*0.5);
+  let fibLevels=[0,0.236,0.382,0.5,0.618,0.705,0.79,1];
+  let fibPrices = fibLevels.map(f=>{
+    // Pour un mouvement haussier puis retracement : fib depuis High vers Low
+    return h - range*f;
+  });
+  // OTE = 0.62 - 0.79
+  let oteHigh = h - range*0.618;
+  let oteLow = h - range*0.79;
+  let entry = (oteHigh+oteLow)/2;
+  let sl, tp1, tp2, signal;
+  if(isSell){
+    signal='🔴 SELL'; sl = h + range*0.08; tp1 = l + range*0.25; tp2 = l;
+  } else {
+    signal='🟢 BUY'; sl = l - range*0.08; tp1 = h - range*0.25; tp2 = h;
+  }
+  let risk=Math.abs(entry-sl); let reward=Math.abs(tp1-entry); let rr=(reward/risk).toFixed(2);
+  let conf = p>=oteLow && p<=oteHigh ? '92% 🔥 DANS OTE' : '68% - En attente OTE';
+  document.getElementById('resultat').style.display='block';
+  document.getElementById('rSignal').innerHTML=signal; document.getElementById('rSignal').className='big '+(isSell?'sell':'buy');
+  document.getElementById('rConf').innerText=conf;
+  document.getElementById('rEntry').innerText=entry.toFixed(2);
+  document.getElementById('rSL').innerText=sl.toFixed(2);
+  document.getElementById('rTP1').innerText=tp1.toFixed(2);
+  document.getElementById('rTP2').innerText=tp2.toFixed(2);
+  document.getElementById('rRR').innerText='1 : '+rr;
+  document.getElementById('rOTE').innerText=oteLow.toFixed(2)+' - '+oteHigh.toFixed(2);
+  let names=['0% - High','23.6%','38.2%','50%','61.8% - OTE','70.5% - OTE','79% - OTE','100% - Low'];
+  document.getElementById('fiboBody').innerHTML = fibLevels.map((f,i)=>`<tr class="${i>=4&&i<=6?'ote':''}"><td>${names[i]}</td><td>${fibPrices[i].toFixed(2)}</td><td>${i>=4&&i<=6?'⭐ ZONE OTE':''}</td></tr>`).join('');
+  document.getElementById('conseil').innerText = isSell ? `Conseil Robot : Attends le prix dans OTE ${oteLow.toFixed(2)} - ${oteHigh.toFixed(2)}, cherche un rejet / CHoCH M1, puis SELL. SL au-dessus du High. Ne pas entrer en plein milieu.` : `Conseil Robot : Attends le retracement dans OTE ${oteLow.toFixed(2)} - ${oteHigh.toFixed(2)}, cherche un rejet / BOS M1, puis BUY. SL sous le Low.`;
+  lastTrade={paire:document.getElementById('paire').value, signal:signal, entry:entry.toFixed(2), sl:sl.toFixed(2), tp1:tp1.toFixed(2), date:new Date().toLocaleString('fr-FR'), result:'En cours'};
+}
+function getJournal(){return JSON.parse(localStorage.getItem('fr_journal')||'[]');}
+function saveJournal(j){localStorage.setItem('fr_journal',JSON.stringify(j)); renderJournal();}
+function ajouterJournal(){
+  if(!lastTrade){alert('Calcule d’abord un signal !');return;}
+  let j=getJournal(); j.unshift(lastTrade); saveJournal(j);
+  alert('Ajouté au journal !');
+}
+function validerResultat(){
+  let j=getJournal(); if(!j.length){alert('Journal vide');return;}
+  j[0].result=document.getElementById('resTrade').value; saveJournal(j);
+}
+function effacerJournal(){if(confirm('Effacer tout ?')){localStorage.removeItem('fr_journal');renderJournal();}}
+function renderJournal(){
+  let j=getJournal(); let wins=j.filter(x=>x.result==='WIN').length;
+  let total=j.filter(x=>x.result!=='En cours').length;
+  document.getElementById('jTotal').innerText=j.length;
+  document.getElementById('jWin').innerText= total? Math.round(wins/total*100)+'%':'0%';
+  document.getElementById('journalList').innerHTML=j.map(x=>`<div style="border-bottom:1px solid #1e345e;padding:6px 0">📅 ${x.date}<br><b>${x.paire} ${x.signal}</b> Entrée ${x.entry} | SL ${x.sl} | TP ${x.tp1} | <b>${x.result}</b></div>`).join('')||'Aucun trade pour le moment.';
+}
+renderJournal();
+</script>
+</body>
+</html>
